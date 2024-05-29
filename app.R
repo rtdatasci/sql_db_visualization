@@ -11,6 +11,8 @@ library(shiny)
 library(DBI)
 library(RSQLite)
 library(DT)
+library(httr)
+library(jsonlite)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -76,7 +78,54 @@ server <- function(input, output, session) {
   onSessionEnded(function() {
     dbDisconnect(conn)
   })
+
+  # Function to generate SQL query using Huggingface API
+  generateSQLQuery <- function(question) {
+    response <- POST(
+      url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
+      add_headers(Authorization = paste("Bearer", Sys.getenv("HUGGINGFACE_API_KEY"))),
+      body = toJSON(list(inputs = question)),
+      encode = "json"
+    )
+
+    if (response$status_code == 200) {
+      content <- fromJSON(content(response, "text", encoding = "UTF-8"))
+      sql_query <- content$generated_text
+      return(sql_query)
+    } else {
+      stop("Failed to generate SQL query from the Huggingface model.")
+    }
+  }
+
+  # Observe event for the submit button
+  observeEvent(input$submitQuestion, {
+    question <- input$userQuestion
+
+    # Generate the SQL query
+    sql_query <- tryCatch({
+      generateSQLQuery(question)
+    }, error = function(e) {
+      return(paste("Error:", e$message))
+    })
+
+    # Print the generated SQL query for debugging
+    print(paste("Generated SQL query:", sql_query))
+
+    # Execute the SQL query if it is valid
+    query_result <- tryCatch({
+      dbGetQuery(conn, sql_query)
+    }, error = function(e) {
+      data.frame(message = "Error executing query: ", error = e$message)
+    })
+
+    # Render the result
+    output$queryResult <- renderDataTable({
+      datatable(query_result)
+    })
+  })
 }
+
+
 
 # Run the application
 shinyApp(ui = ui, server = server)
