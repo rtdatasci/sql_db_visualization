@@ -17,13 +17,27 @@ ui <- fluidPage(
 
     # Application title
     titlePanel("Database visualization"),
-
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           dataTableOutput("databaseTable")
-        )
+    # Tabs
+    tabsetPanel(
+      tabPanel("Data Table",
+               mainPanel(
+                 dataTableOutput("databaseTable")
+               )
+      ),
+      tabPanel("Query with LLM",
+               sidebarLayout(
+                 sidebarPanel(
+                   textInput("userQuestion", "Ask a question:", ""),
+                   actionButton("submitQuestion", "Submit")
+                 ),
+                 mainPanel(
+                   dataTableOutput("queryResult")
+                 )
+               )
+      )
+    )
 )
+
 
 server <- function(input, output, session) {
 
