@@ -55,7 +55,8 @@ server <- function(input, output, session) {
   }
 
   output$databaseTable <- renderDataTable({
-    datatable(sample_data)
+    # datatable(sample_data)
+    datatable(sample_data, filter = "top")
   })
 
   onSessionEnded(function() {
