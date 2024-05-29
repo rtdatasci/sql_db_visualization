@@ -24,7 +24,7 @@ This project contains a Shiny app that connects to an SQLite database. The app d
 
 ## Setting Up the Database
 
-The `samples.db` file is included in the repository. If you need to recreate it, use the provided Python script to create and populate the database.
+The `samples.db` file is included in the repository. If you need to recreate it, use the provided Python script 'sqlite.py' to create and populate the database.
 
 ## TEST output in shinyapps io
 https://throwaway.shinyapps.io/sql_db_visualization/
